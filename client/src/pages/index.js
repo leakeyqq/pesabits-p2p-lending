@@ -1,9 +1,10 @@
 'use client'
 
-import React, { useState } from "react";
+import React, { useState , useEffect} from "react";
 import { useRouter } from "next/router";
 import Link from "next/link"
 import axios from 'axios';
+import Cookies from "js-cookie";
 
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
@@ -18,22 +19,37 @@ export default function Home() {
 
   const router = useRouter(); //
 
+  useEffect(() => {
+    const token = Cookies.get("authToken") || sessionStorage.getItem("authToken");
+  
+    if (token) {
+      router.push("/dashboard");
+    }
+  }, []);
+
   const handleLogin = async (event) => {
     event.preventDefault();
     setLoading(true);
     setError(""); 
-
+  
     try {
       const response = await axios.post("http://localhost:5000/api/auth/login", {
         email,
         password,
       });
-      
+  
       const token = response.data.token;
-      localStorage.setItem("authToken", token); 
-      console.log("Logged in successfully:", response.data);
+      const rememberMe = document.getElementById("remember").checked; 
+  
+      if (rememberMe) {
+         Cookies.set("authToken", token, { expires: 7 });
+      } else {
+        sessionStorage.setItem("authToken", token); 
+      }
+  
+      localStorage.setItem("userRegistered", "true"); 
       router.push("/dashboard");
-
+  
     } catch (error) {
       setError(error.response?.data?.message || "Login failed. Please try again.");
       console.error("Login error:", error);
