@@ -26,7 +26,7 @@ export default function SidebarMenuComponent({ menuItems }) {
             const isActive = router.pathname === item.route; 
 
             return (
-              <SidebarMenuItem className="mx-6 rounded-sm" key={item.title}>
+              <SidebarMenuItem key={item.title}>
                 <Link href={item.route} passHref>
                   <SidebarMenuButton
                     tooltip={item.title}

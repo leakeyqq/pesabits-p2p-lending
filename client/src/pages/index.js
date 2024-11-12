@@ -109,7 +109,7 @@ export default function Home() {
               className="h-12 w-full bg-[#E8FB5A] font-medium text-black hover:bg-[#E8FB5A]/90"
               disabled={loading} 
             >
-              {loading ? "Logging in..." : "Get started"}
+              {loading ? "Logging in..." : "Login"}
             </Button>
             {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
             <div className="relative">
@@ -131,6 +131,11 @@ export default function Home() {
             </Button>
           </div>
         </form>
+        <div className="text-center mt-4">
+          <Link href="/signup" className="text-sm font-medium text-[#002B5B] underline">
+            Don’t have an account? Sign Up
+          </Link>
+        </div>
       </div>
     </SessionLayout>
   );
