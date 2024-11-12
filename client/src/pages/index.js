@@ -1,14 +1,14 @@
-'use client'
+'use client';
 
-import React, { useState , useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import Link from "next/link"
+import Link from "next/link";
 import axios from 'axios';
 import Cookies from "js-cookie";
 
-import { Checkbox } from "@/components/ui/checkbox"
-import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import SessionLayout from "@/components/@layouts/sessionLayout";
 
 export default function Home() {
@@ -17,15 +17,17 @@ export default function Home() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const router = useRouter(); //
+  const router = useRouter();
 
   useEffect(() => {
+    // Check if an auth token exists in cookies or session storage
     const token = Cookies.get("authToken") || sessionStorage.getItem("authToken");
-  
+
     if (token) {
+      // Redirect to the dashboard if the token is found (i.e., user is logged in)
       router.push("/dashboard");
     }
-  }, []);
+  }, [router]);
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -42,9 +44,9 @@ export default function Home() {
       const rememberMe = document.getElementById("remember").checked; 
   
       if (rememberMe) {
-         Cookies.set("authToken", token, { expires: 7 });
+        Cookies.set("authToken", token, { expires: 7 });
       } else {
-        sessionStorage.setItem("authToken", token); 
+        sessionStorage.setItem("authToken", token);
       }
   
       localStorage.setItem("userRegistered", "true"); 
@@ -107,7 +109,7 @@ export default function Home() {
               className="h-12 w-full bg-[#E8FB5A] font-medium text-black hover:bg-[#E8FB5A]/90"
               disabled={loading} 
             >
-              {loading ? "Logging in..." : "Get started"}
+              {loading ? "Logging in..." : "Login"}
             </Button>
             {error && <div className="text-red-500 text-sm mt-2">{error}</div>}
             <div className="relative">
@@ -129,6 +131,11 @@ export default function Home() {
             </Button>
           </div>
         </form>
+        <div className="text-center mt-4">
+          <Link href="/signup" className="text-sm font-medium text-[#002B5B] underline">
+            Don’t have an account? Sign Up
+          </Link>
+        </div>
       </div>
     </SessionLayout>
   );
