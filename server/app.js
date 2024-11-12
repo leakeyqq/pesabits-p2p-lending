@@ -3,9 +3,13 @@ const express = require('express');
 const dotenv = require('dotenv');
 const connectDB = require('./config/db');
 const authRoutes = require('./routes/authRoutes');
+const cors = require('cors');
+
 
 dotenv.config();
 const app = express();
+
+app.use(cors({ origin: 'http://localhost:3000' }));
 app.use(express.json());
 
 connectDB();
