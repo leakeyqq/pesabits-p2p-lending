@@ -1,8 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Bell, Calculator, CreditCard, FileText, LayoutDashboard, MessageSquare, Settings, Users, Wallet, Eye, LayoutGrid } from 'lucide-react'
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { FileText, Plus, Eye, LayoutGrid } from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card"
 import {
@@ -21,11 +20,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import axios from 'axios';
 import { Badge } from "@/components/ui/badge"
 import Dashboard from '@/components/@layouts/dashboard-layout'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group" // Assuming you have this component
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group" 
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function LoanOffers() {
   const [isWalletConnected, setIsWalletConnected] = useState(false)
@@ -48,17 +50,46 @@ export default function LoanOffers() {
     setIsWalletConnected(true)
   }
 
-  const handlePostLenderOffer = (newOffer) => {
-    setLenderOffers([...lenderOffers, { ...newOffer, id: lenderOffers.length + 1, status: 'pending' }])
-  }
+  const handlePostLenderOffer = async (newOffer) => {
+    try {
+      const { data } = await axios.post('/api/lender-offers', newOffer);
+      setLenderOffers([...lenderOffers, { ...data, id: lenderOffers.length + 1, status: 'pending' }]);
+    } catch (error) {
+      console.error("Error creating lender offer:", error);
+    }
+  };
+  
+  const handlePostBorrowerOffer = async (newOffer) => {
+    try {
+      const { data } = await axios.post('/api/borrower-offers', newOffer);
+      setBorrowerOffers([...borrowerOffers, { ...data, id: borrowerOffers.length + 1, status: 'pending' }]);
+    } catch (error) {
+      console.error("Error creating borrower offer:", error);
+    }
+  };
 
-  const handlePostBorrowerOffer = (newOffer) => {
-    setBorrowerOffers([...borrowerOffers, { ...newOffer, id: borrowerOffers.length + 1, status: 'pending' }])
-  }
+  const repayLoan = async (loanId) => {
+    try {
+      await axios.put(`/api/loans/${loanId}/repay`);
+      console.log("Loan status updated to repaid");
+    } catch (error) {
+      console.error("Error repaying loan:", error);
+    }
+  };
+  
+  const rateBorrower = async (loanId, borrowerRating) => {
+    try {
+      await axios.put(`/api/loans/${loanId}/rate`, { borrowerRating });
+      console.log("Rating successfully added");
+    } catch (error) {
+      console.error("Error rating borrower:", error);
+    }
+  };
 
   return (
     <Dashboard>
-      <Tabs defaultValue="lenders" className="w-full">
+      <h1>Hello word</h1>
+      <Tabs defaultValue="lenders" className="w-full bg-[]">
         <div className="flex justify-between items-center mb-6">
           <TabsList>
             <TabsTrigger value="lenders">Lenders Offers</TabsTrigger>
@@ -257,19 +288,89 @@ function OffersDisplay({ offers, viewMode, setViewMode, type }) {
 }
 
 function PostOfferDialog({ onPostOffer, type }) {
+  const [amount, setAmount] = useState('')
+  const [interestRate, setInterestRate] = useState('')
+  const [term, setTerm] = useState('')
+  const [collateral, setCollateral] = useState('')
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    onPostOffer({
+      [type === 'lender' ? 'lender' : 'borrower']: 'New User', // This should be replaced with the actual user's name or address
+      amount: parseFloat(amount),
+      [type === 'lender' ? 'interestRate' : 'maxInterestRate']: parseFloat(interestRate),
+      term: parseInt(term),
+      [type === 'lender' ? 'collateralRequired' : 'collateralOffered']: collateral,
+    })
+  }
+
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button>{type === 'lender' ? 'Post Lender Offer' : 'Post Borrower Offer'}</Button>
+        <Button className="bg-[#6366F1] hover:bg-[#5355d1] text-white">
+          <Plus className="h-4 w-4 mr-2" />
+          Post {type === 'lender' ? 'Offer' : 'Request'}
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Post {type === 'lender' ? 'Lender' : 'Borrower'} Offer</DialogTitle>
+          <DialogTitle>Post a New {type === 'lender' ? 'Loan Offer' : 'Loan Request'}</DialogTitle>
+          <DialogDescription>
+            Fill in the details of your {type === 'lender' ? 'loan offer' : 'loan request'} below.
+          </DialogDescription>
         </DialogHeader>
-        {/* Form logic for posting lender/borrower offer */}
-        <Button onClick={() => onPostOffer({ /* example data */ })}>
-          Submit
-        </Button>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <Label htmlFor="amount">Loan Amount (USD)</Label>
+            <Input
+              id="amount"
+              type="number"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="10000"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="interestRate">{type === 'lender' ? 'Interest Rate' : 'Max Interest Rate'} (%)</Label>
+            <Input
+              id="interestRate"
+              type="number"
+              value={interestRate}
+              onChange={(e) => setInterestRate(e.target.value)}
+              placeholder="5.5"
+              step="0.1"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="term">Loan Term (months)</Label>
+            <Input
+              id="term"
+              type="number"
+              value={term}
+              onChange={(e) => setTerm(e.target.value)}
+              placeholder="12"
+              required
+            />
+          </div>
+          <div>
+            <Label htmlFor="collateral">{type === 'lender' ? 'Collateral Required' : 'Collateral Offered'}</Label>
+            <Select onValueChange={setCollateral} required>
+              <SelectTrigger>
+                <SelectValue placeholder="Select collateral type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="BTC">Bitcoin (BTC)</SelectItem>
+                <SelectItem value="ETH">Ethereum (ETH)</SelectItem>
+                <SelectItem value="USDC">USD Coin (USDC)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button type="submit" className="w-full bg-[#6366F1] hover:bg-[#5355d1] text-white">
+            Post {type === 'lender' ? 'Offer' : 'Request'}
+          </Button>
+        </form>
       </DialogContent>
     </Dialog>
   )
