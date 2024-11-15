@@ -45,11 +45,7 @@ export default function LoanOffers() {
     { id: 2, borrower: "Borrower B", amount: 35000, maxInterestRate: 5.5, term: 18, collateralOffered: "ETH", status: "pending" },
     { id: 3, borrower: "Borrower C", amount: 15000, maxInterestRate: 7.0, term: 6, collateralOffered: "USDC", status: "active" },
   ])
-
-  const handleConnectWallet = () => {
-    setIsWalletConnected(true)
-  }
-
+  
   const handlePostLenderOffer = async (newOffer) => {
     try {
       const { data } = await axios.post('/api/lender-offers', newOffer);
