@@ -45,7 +45,7 @@ export default function LoanOffers() {
     { id: 2, borrower: "Borrower B", amount: 35000, maxInterestRate: 5.5, term: 18, collateralOffered: "ETH", status: "pending" },
     { id: 3, borrower: "Borrower C", amount: 15000, maxInterestRate: 7.0, term: 6, collateralOffered: "USDC", status: "active" },
   ])
-
+  
   const handlePostLenderOffer = async (newOffer) => {
     try {
       const { data } = await axios.post('/api/lender-offers', newOffer);
@@ -84,7 +84,8 @@ export default function LoanOffers() {
 
   return (
     <Dashboard>
-      <Tabs defaultValue="lenders" className="w-full">
+      <h1>Hello word</h1>
+      <Tabs defaultValue="lenders" className="w-full bg-[]">
         <div className="flex justify-between items-center mb-6">
           <TabsList>
             <TabsTrigger value="lenders">Lenders Offers</TabsTrigger>
