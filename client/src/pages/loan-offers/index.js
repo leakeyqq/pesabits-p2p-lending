@@ -1,0 +1,276 @@
+'use client'
+
+import { useState } from 'react'
+import { Bell, Calculator, CreditCard, FileText, LayoutDashboard, MessageSquare, Settings, Users, Wallet, Eye, LayoutGrid } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardFooter, CardDescription } from "@/components/ui/card"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Badge } from "@/components/ui/badge"
+import Dashboard from '@/components/@layouts/dashboard-layout'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group" // Assuming you have this component
+
+export default function LoanOffers() {
+  const [isWalletConnected, setIsWalletConnected] = useState(false)
+  const [viewMode, setViewMode] = useState('card');
+
+  const [lenderOffers, setLenderOffers] = useState([
+    { id: 1, lender: "Lender A", amount: 25000, interestRate: 5.5, term: 12, collateralRequired: "BTC", status: "active" },
+    { id: 2, lender: "Lender B", amount: 15000, interestRate: 6.0, term: 6, collateralRequired: "ETH", status: "active" },
+    { id: 3, lender: "Lender C", amount: 50000, interestRate: 4.8, term: 24, collateralRequired: "USDC", status: "pending" },
+    { id: 4, lender: "Lender D", amount: 10000, interestRate: 7.0, term: 3, collateralRequired: "BTC", status: "active" },
+    { id: 5, lender: "Lender E", amount: 30000, interestRate: 5.2, term: 18, collateralRequired: "ETH", status: "active" },
+  ])
+  const [borrowerOffers, setBorrowerOffers] = useState([
+    { id: 1, borrower: "Borrower A", amount: 20000, maxInterestRate: 6.0, term: 12, collateralOffered: "BTC", status: "active" },
+    { id: 2, borrower: "Borrower B", amount: 35000, maxInterestRate: 5.5, term: 18, collateralOffered: "ETH", status: "pending" },
+    { id: 3, borrower: "Borrower C", amount: 15000, maxInterestRate: 7.0, term: 6, collateralOffered: "USDC", status: "active" },
+  ])
+
+  const handleConnectWallet = () => {
+    setIsWalletConnected(true)
+  }
+
+  const handlePostLenderOffer = (newOffer) => {
+    setLenderOffers([...lenderOffers, { ...newOffer, id: lenderOffers.length + 1, status: 'pending' }])
+  }
+
+  const handlePostBorrowerOffer = (newOffer) => {
+    setBorrowerOffers([...borrowerOffers, { ...newOffer, id: borrowerOffers.length + 1, status: 'pending' }])
+  }
+
+  return (
+    <Dashboard>
+      <Tabs defaultValue="lenders" className="w-full">
+        <div className="flex justify-between items-center mb-6">
+          <TabsList>
+            <TabsTrigger value="lenders">Lenders Offers</TabsTrigger>
+            <TabsTrigger value="borrowers">Borrowers Offers</TabsTrigger>
+          </TabsList>
+          <div className="flex gap-2">
+            <PostOfferDialog onPostOffer={handlePostLenderOffer} type="lender" />
+            <PostOfferDialog onPostOffer={handlePostBorrowerOffer} type="borrower" />
+          </div>
+        </div>
+
+        <TabsContent value="lenders">
+          <OffersDisplay offers={lenderOffers} viewMode={viewMode} setViewMode={setViewMode} type="lender" />
+        </TabsContent>
+
+        <TabsContent value="borrowers">
+          <OffersDisplay offers={borrowerOffers} viewMode={viewMode} setViewMode={setViewMode} type="borrower" />
+        </TabsContent>
+      </Tabs>
+    </Dashboard>
+  )
+}
+
+function OffersDisplay({ offers, viewMode, setViewMode, type }) {
+  return (
+    <Card className="border-none shadow-none bg-transparent">
+      <CardHeader>
+        <div className="flex justify-between items-center">
+          <CardTitle>{type === 'lender' ? 'Lender Offers' : 'Borrower Offers'}</CardTitle>
+          <ToggleGroup type="single" value={viewMode} onValueChange={(value) => value && setViewMode(value)} defaultValue="card">
+            <ToggleGroupItem value="card" aria-label="Card view">
+              <LayoutGrid className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="table" aria-label="Table view">
+              <FileText className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      </CardHeader>
+      <CardContent>
+        {viewMode === 'card' ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {offers.map((offer) => (
+              <Card key={offer.id}>
+                <CardHeader>
+                  <CardTitle>{type === 'lender' ? offer.lender : offer.borrower}</CardTitle>
+                  <CardDescription>${offer.amount.toLocaleString()} {type === 'lender' ? 'Loan Offer' : 'Loan Request'}</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">{type === 'lender' ? 'Interest Rate:' : 'Max Interest Rate:'}</span>
+                      <span className="font-medium">{type === 'lender' ? offer.interestRate : offer.maxInterestRate}%</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">Term:</span>
+                      <span className="font-medium">{offer.term} months</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-500">{type === 'lender' ? 'Collateral Required:' : 'Collateral Offered:'}</span>
+                      <span className="font-medium">{type === 'lender' ? offer.collateralRequired : offer.collateralOffered}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-500">Status:</span>
+                      <Badge variant={offer.status === 'active' ? 'success' : 'secondary'}>
+                        {offer.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardContent>
+                <CardFooter>
+                  <Dialog>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" className="w-full">
+                        <Eye className="h-4 w-4 mr-2" />
+                        View Details
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>{type === 'lender' ? 'Loan Offer Details' : 'Loan Request Details'}</DialogTitle>
+                        <DialogDescription>
+                          Review the details of this {type === 'lender' ? 'loan offer' : 'loan request'}.
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <h4 className="font-semibold">{type === 'lender' ? 'Lender' : 'Borrower'}</h4>
+                          <p>{type === 'lender' ? offer.lender : offer.borrower}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold">Loan Amount</h4>
+                          <p>${offer.amount.toLocaleString()}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold">{type === 'lender' ? 'Interest Rate' : 'Max Interest Rate'}</h4>
+                          <p>{type === 'lender' ? offer.interestRate : offer.maxInterestRate}% per annum</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold">Loan Term</h4>
+                          <p>{offer.term} months</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold">{type === 'lender' ? 'Collateral Required' : 'Collateral Offered'}</h4>
+                          <p>{type === 'lender' ? offer.collateralRequired : offer.collateralOffered}</p>
+                        </div>
+                        <div>
+                          <h4 className="font-semibold">Status</h4>
+                          <Badge variant={offer.status === 'active' ? 'success' : 'secondary'}>{offer.status}</Badge>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </CardFooter>
+              </Card>
+            ))}
+          </div>
+        ) : (
+          <Table className="px-12 bg-[#fff] shadow">
+            <TableHeader>
+              <TableRow>
+                <TableHead>{type === 'lender' ? 'Lender' : 'Borrower'}</TableHead>
+                <TableHead>Amount</TableHead>
+                <TableHead>{type === 'lender' ? 'Interest Rate' : 'Max Interest Rate'}</TableHead>
+                <TableHead>Term</TableHead>
+                <TableHead>{type === 'lender' ? 'Collateral Required' : 'Collateral Offered'}</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Action</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {offers.map((offer) => (
+                <TableRow key={offer.id}>
+                  <TableCell>{type === 'lender' ? offer.lender : offer.borrower}</TableCell>
+                  <TableCell>${offer.amount.toLocaleString()}</TableCell>
+                  <TableCell>{type === 'lender' ? offer.interestRate : offer.maxInterestRate}%</TableCell>
+                  <TableCell>{offer.term} months</TableCell>
+                  <TableCell>{type === 'lender' ? offer.collateralRequired : offer.collateralOffered}</TableCell>
+                  <TableCell>
+                    <Badge variant={offer.status === 'active' ? 'success' : 'secondary'}>
+                      {offer.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                          <Eye className="h-4 w-4 mr-2" />
+                          View Details
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>{type === 'lender' ? 'Loan Offer Details' : 'Loan Request Details'}</DialogTitle>
+                          <DialogDescription>
+                            Review the details of this {type === 'lender' ? 'loan offer' : 'loan request'}.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div>
+                            <h4 className="font-semibold">{type === 'lender' ? 'Lender' : 'Borrower'}</h4>
+                            <p>{type === 'lender' ? offer.lender : offer.borrower}</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">Loan Amount</h4>
+                            <p>${offer.amount.toLocaleString()}</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">{type === 'lender' ? 'Interest Rate' : 'Max Interest Rate'}</h4>
+                            <p>{type === 'lender' ? offer.interestRate : offer.maxInterestRate}% per annum</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">Loan Term</h4>
+                            <p>{offer.term} months</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">{type === 'lender' ? 'Collateral Required' : 'Collateral Offered'}</h4>
+                            <p>{type === 'lender' ? offer.collateralRequired : offer.collateralOffered}</p>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold">Status</h4>
+                            <Badge variant={offer.status === 'active' ? 'success' : 'secondary'}>{offer.status}</Badge>
+                          </div>
+                        </div>
+                      </DialogContent>
+                    </Dialog>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </CardContent>
+    </Card>
+  )
+}
+
+function PostOfferDialog({ onPostOffer, type }) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button>{type === 'lender' ? 'Post Lender Offer' : 'Post Borrower Offer'}</Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Post {type === 'lender' ? 'Lender' : 'Borrower'} Offer</DialogTitle>
+        </DialogHeader>
+        {/* Form logic for posting lender/borrower offer */}
+        <Button onClick={() => onPostOffer({ /* example data */ })}>
+          Submit
+        </Button>
+      </DialogContent>
+    </Dialog>
+  )
+}
