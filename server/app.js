@@ -10,7 +10,22 @@ const loanOfferRoutes = require('./routes/loanOfferRoutes');
 dotenv.config();
 const app = express();
 
-app.use(cors({ origin: 'http://localhost:3000' }));
+const allowedOrigins = [
+    "http://localhost:3000/",
+    "https://pesabits.vercel.app/"
+];
+
+app.use(cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    methods: "GET,POST,PUT,DELETE",
+    credentials: true 
+}));
 app.use(express.json());
 
 connectDB();
