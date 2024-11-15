@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import SessionLayout from "@/components/@layouts/sessionLayout";
 
+const baseURl = 'https://pesabits-p2p-lending.onrender.com'
+
 export default function Register() {
   const [formData, setFormData] = useState({
     name: "",
@@ -36,7 +38,7 @@ export default function Register() {
     setError("");
 
     try {
-      await axios.post("http://localhost:5000/api/auth/register", formData);
+      await axios.post(`${baseURl}/api/auth/register`, formData);
       router.push("/dashboard");
     } catch (error) {
       setError(error.response?.data?.message || "Registration failed. Please try again.");

@@ -11,6 +11,8 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import SessionLayout from "@/components/@layouts/sessionLayout";
 
+const baseURl = 'https://pesabits-p2p-lending.onrender.com'
+
 export default function Home() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,7 +26,6 @@ export default function Home() {
     const token = Cookies.get("authToken") || sessionStorage.getItem("authToken");
 
     if (token) {
-      // Redirect to the dashboard if the token is found (i.e., user is logged in)
       router.push("/dashboard");
     }
   }, [router]);
@@ -35,7 +36,7 @@ export default function Home() {
     setError(""); 
   
     try {
-      const response = await axios.post("http://localhost:5000/api/auth/login", {
+      const response = await axios.post(`${baseURl}/api/auth/login`, {
         email,
         password,
       });
